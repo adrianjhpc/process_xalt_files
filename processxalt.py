@@ -18,12 +18,9 @@ def plot_bar_graph(data, filename, xlabel, ylabel):
     data.sort()
 
 #    plt.locator_params(axis='x', nbins=10)
-    print(data)
     labels, ys = zip(*data)
 
     width = 1
-    print(ys)
-    print(labels)
     fig = plt.figure()                                                               
     ax = fig.gca()
     ax.bar(labels, ys, width, align='center')
@@ -31,14 +28,14 @@ def plot_bar_graph(data, filename, xlabel, ylabel):
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     
-    plt.savefig(filename)
+    plt.savefig(filename + '.png')
 
     ax.scatter(labels, ys)
 
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
 
-    plt.savefig(filename+"_scatter.png")
+    plt.savefig(filename+'_scatter.png')
     
 #with open('xaltdata/adrianj/run.nid00002.2018_02_01_05_15_50.9a156b34-5e74-4b8f-b43f-022f74986290.json', 'r') as read_file:
 #    data = json.load(read_file)
@@ -316,8 +313,8 @@ def process_files(file_path):
 
 
 
-    plot_bar_graph(mpi_job_counts, 'mpi_jobs_counts.png', 'number of nodes', 'number of jobs')
-    plot_bar_graph(mpi_job_runtimes, 'mpi_jobs_runtimes.png', 'number of nodes', 'cumulative runtime (seconds)') 
+    plot_bar_graph(mpi_job_counts, 'mpi_jobs_counts', 'number of nodes', 'number of jobs')
+    plot_bar_graph(mpi_job_runtimes, 'mpi_jobs_runtimes', 'number of nodes', 'cumulative runtime (seconds)') 
 
     del mpi_jobs
     del mpi_job_counts
@@ -345,8 +342,8 @@ def process_files(file_path):
             hybrid_job_runtimes.append([number_of_nodes,runtime])
 
             
-    plot_bar_graph(hybrid_job_counts, 'hybrid_jobs_counts.png', 'number of nodes', 'number of jobs')
-    plot_bar_graph(hybrid_job_runtimes, 'hybrid_jobs_runtimes.png', 'number of nodes', 'cumulative runtime (seconds)')
+    plot_bar_graph(hybrid_job_counts, 'hybrid_jobs_counts', 'number of nodes', 'number of jobs')
+    plot_bar_graph(hybrid_job_runtimes, 'hybrid_jobs_runtimes', 'number of nodes', 'cumulative runtime (seconds)')
 
     del hybrid_jobs
     del hybrid_job_counts
@@ -371,8 +368,8 @@ def process_files(file_path):
             hybrid_job_thread_runtimes.append([number_of_threads,runtime])
 
                         
-    plot_bar_graph(hybrid_job_thread_counts, 'hybrid_jobs_thread_counts.png', 'number of threads used', 'number of jobs')
-    plot_bar_graph(hybrid_job_thread_runtimes, 'hybrid_jobs_thread_runtimes.png', 'number of threads used', 'cumulative runtime (seconds)') 
+    plot_bar_graph(hybrid_job_thread_counts, 'hybrid_jobs_thread_counts', 'number of threads used', 'number of jobs')
+    plot_bar_graph(hybrid_job_thread_runtimes, 'hybrid_jobs_thread_runtimes', 'number of threads used', 'cumulative runtime (seconds)') 
 
     unknown_job_counts = []
     unknown_job_runtimes = []
@@ -396,11 +393,8 @@ def process_files(file_path):
             unknown_job_runtimes.append([number_of_nodes,runtime])
 
 
-    print("UNKNOWN JOB COUNT")
-    print("-----------------")
-    plot_bar_graph(unknown_job_counts, 'unknown_jobs_counts.png', 'number of nodes', 'number of jobs')
-    print("-----------------")
-    plot_bar_graph(unknown_job_runtimes, 'unknown_jobs_runtimes.png', 'number of nodes', 'cumulative runtime (seconds)')
+    plot_bar_graph(unknown_job_counts, 'unknown_jobs_counts', 'number of nodes', 'number of jobs')
+    plot_bar_graph(unknown_job_runtimes, 'unknown_jobs_runtimes', 'number of nodes', 'cumulative runtime (seconds)')
 
 
 def main(argv):
