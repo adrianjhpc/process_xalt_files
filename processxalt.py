@@ -64,7 +64,6 @@ def process_files(file_path, defined_process_limit = -1):
     for dir in directories:
         if(process_limit != -1 and files_processed > process_limit): break
         files = os.listdir(root_path+"/"+dir)
-        directory_local = []
         for file in files:
             if 'link.' in file:            
                 files_processed = files_processed + 1
@@ -97,9 +96,14 @@ def process_files(file_path, defined_process_limit = -1):
                                     break
                             
                         executables.append(new_executable)
-                        directory_local.append(new_executable)
                     except:
                         print("Problem with " + root_path+"/"+dir+"/"+file)
+
+    files_processed = 0
+    
+    for dir in directories:
+        if(process_limit != -1 and files_processed > process_limit): break
+        files = os.listdir(root_path+"/"+dir)
         for file in files:
             if 'run.' in file:
                 files_processed = files_processed + 1
@@ -132,14 +136,14 @@ def process_files(file_path, defined_process_limit = -1):
                                 new_job["taskspernode"] = node_tasks
 
                         found = False
-                        for link in directory_local:
+                        for link in executables:
                             if link["hash"] == new_job["hash"]:
                                 new_job["mpi"] = link["mpi"]
                                 new_job["openmp"] = link["openmp"]
                                 new_job["pthread"] = link["pthread"]
                                 found = True
                                 break
-                        #                if("openmp" in new_job and new_job["openmp"] and not new_job["mpi"]): print("openmp")
+
                         jobs.append(new_job)
                     except:
                         print("Problem with " + root_path+"/"+dir+"/"+file)
