@@ -9,6 +9,8 @@ import json
 import os
 import math
 import numpy as np
+import matplotlib
+matplotlib.use('agg') 
 import matplotlib.pyplot as plt  
 
 def plot_bar_graph(data, filename, xlabel, ylabel):
@@ -142,7 +144,7 @@ for dir in directories:
                             new_job["pthread"] = link["pthread"]
                             break
                         #                if("openmp" in new_job and new_job["openmp"] and not new_job["mpi"]): print("openmp")
-                        jobs.append(new_job)
+                    jobs.append(new_job)
                 except:
                     print("Problem with " + root_path+"/"+dir+"/"+file)
 
@@ -182,7 +184,7 @@ for executable in executables:
     elif(executable["compiler"] == "gcc"):
        gnu = gnu + 1
        c = c + 1
-    elif(executable["compiler"] == "g++"):
+    elif(executable["compiler"] == "g++" or executable["compiler"] == "c++"):
        gnu = gnu + 1
        cplusplus = cplusplus + 1
     elif(executable["compiler"] == "ftn_driver.exe"):
