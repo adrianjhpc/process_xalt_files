@@ -117,6 +117,9 @@ def process_files(file_path, defined_process_limit = -1):
                         for user in userT:
                             if 'num_tasks' in user:
                                 new_job["tasks"]  = userT[user]
+                                if(userT[user]  > 100000):
+                                    print("High Tasks:")
+                                    print(data)
                             elif 'num_threads' in user:
                                 new_job["threads"] = userT[user]
                             elif 'tasksnode' in user:
