@@ -400,7 +400,10 @@ def main(argv):
     process_limit = -1
     if(len(sys.argv) == 3):
         process_limit = int(sys.argv[2])
-        
+   
+    print("Running the analysis on files in " + filepath)
+    if(process_limit != -1):
+        print("Limiting to processing approximately " + str(process_limit) + " files")     
     process_files(filepath, process_limit)
 
 if __name__ == "__main__":
