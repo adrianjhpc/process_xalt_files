@@ -25,6 +25,9 @@ def plot_bar_graph(data, filename, xlabel, ylabel):
     ax = fig.gca()
     ax.bar(labels, ys, width, align='center')
 
+    plt.xlim(left=labels[0]-1)
+    plt.xlim(right=labels[-1]+1)
+
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     
@@ -34,25 +37,12 @@ def plot_bar_graph(data, filename, xlabel, ylabel):
 
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
+    plt.ylim(bottom=0)
 
     plt.savefig(filename+'_scatter.png')
     
-#with open('xaltdata/adrianj/run.nid00002.2018_02_01_05_15_50.9a156b34-5e74-4b8f-b43f-022f74986290.json', 'r') as read_file:
-#    data = json.load(read_file)
-#    userT = data["userT"]
-#    for user in userT:
-#        print(user)
-#        print(userT[user])
-#        if 'num_tasks' in user:
-#           print("tasks " + str(userT[user]))
-#        elif 'num_threads' in user:
-#            print("threads " + str(userT[user]))
-#        elif 'tasksnode' in user:
-#            print("taskspernode " +str(userT[user]))
-#        elif 'run_time' in user:
-#            print('runtime ' + str(userT[user]))
                         
-def process_files(file_path):
+def process_files(file_path, defined_process_limit = -1):
 
     root_path = file_path
     
@@ -67,7 +57,7 @@ def process_files(file_path):
     node_tasks = 24
     
     # Number of files to process before finishing
-    process_limit = 10000
+    process_limit = defined_process_limit
     
     directories = os.listdir(root_path)
 
@@ -312,9 +302,9 @@ def process_files(file_path):
             mpi_job_runtimes.append([number_of_nodes,runtime])
 
 
-
-    plot_bar_graph(mpi_job_counts, 'mpi_jobs_counts', 'number of nodes', 'number of jobs')
-    plot_bar_graph(mpi_job_runtimes, 'mpi_jobs_runtimes', 'number of nodes', 'cumulative runtime (seconds)') 
+    if(len(mpi_job_counts) > 0):
+       plot_bar_graph(mpi_job_counts, 'mpi_jobs_counts', 'number of nodes', 'number of jobs')
+       plot_bar_graph(mpi_job_runtimes, 'mpi_jobs_runtimes', 'number of nodes', 'cumulative runtime (seconds)') 
 
     del mpi_jobs
     del mpi_job_counts
@@ -341,9 +331,9 @@ def process_files(file_path):
             hybrid_job_counts.append([number_of_nodes,1])
             hybrid_job_runtimes.append([number_of_nodes,runtime])
 
-            
-    plot_bar_graph(hybrid_job_counts, 'hybrid_jobs_counts', 'number of nodes', 'number of jobs')
-    plot_bar_graph(hybrid_job_runtimes, 'hybrid_jobs_runtimes', 'number of nodes', 'cumulative runtime (seconds)')
+    if(len(hybrid_job_counts) > 0):            
+        plot_bar_graph(hybrid_job_counts, 'hybrid_jobs_counts', 'number of nodes', 'number of jobs')
+        plot_bar_graph(hybrid_job_runtimes, 'hybrid_jobs_runtimes', 'number of nodes', 'cumulative runtime (seconds)')
 
     del hybrid_jobs
     del hybrid_job_counts
@@ -367,9 +357,10 @@ def process_files(file_path):
             hybrid_job_thread_counts.append([number_of_threads,1])
             hybrid_job_thread_runtimes.append([number_of_threads,runtime])
 
-                        
-    plot_bar_graph(hybrid_job_thread_counts, 'hybrid_jobs_thread_counts', 'number of threads used', 'number of jobs')
-    plot_bar_graph(hybrid_job_thread_runtimes, 'hybrid_jobs_thread_runtimes', 'number of threads used', 'cumulative runtime (seconds)') 
+
+    if(len(hybrid_job_thread_counts) > 0):
+        plot_bar_graph(hybrid_job_thread_counts, 'hybrid_jobs_thread_counts', 'number of threads used', 'number of jobs')
+        plot_bar_graph(hybrid_job_thread_runtimes, 'hybrid_jobs_thread_runtimes', 'number of threads used', 'cumulative runtime (seconds)') 
 
     unknown_job_counts = []
     unknown_job_runtimes = []
@@ -392,21 +383,25 @@ def process_files(file_path):
             unknown_job_counts.append([number_of_nodes,1])
             unknown_job_runtimes.append([number_of_nodes,runtime])
 
-
-    plot_bar_graph(unknown_job_counts, 'unknown_jobs_counts', 'number of nodes', 'number of jobs')
-    plot_bar_graph(unknown_job_runtimes, 'unknown_jobs_runtimes', 'number of nodes', 'cumulative runtime (seconds)')
+    if(len(unknown_job_counts) > 0):
+        plot_bar_graph(unknown_job_counts, 'unknown_jobs_counts', 'number of nodes', 'number of jobs')
+        plot_bar_graph(unknown_job_runtimes, 'unknown_jobs_runtimes', 'number of nodes', 'cumulative runtime (seconds)')
 
 
 def main(argv):
 
-    if(len(sys.argv) != 2):
-        print("Expecting a single argument with the path to the xalt files.")
+    if(len(sys.argv) > 3 or len(sys.argv) < 2):
+        print("Expecting the path to the xalt files (and an optional parameter specifying how many files to process).")
+        print("Incorrect number of parameters passed so...")
         print("Exiting")
         return
     
     filepath = sys.argv[1]
-    
-    process_files(filepath)
+    process_limit = -1
+    if(len(sys.argv) == 3):
+        process_limit = int(sys.argv[2])
+        
+    process_files(filepath, process_limit)
 
 if __name__ == "__main__":
     main(sys.argv)
