@@ -256,6 +256,9 @@ def process_files(file_path, defined_process_limit = -1):
                 mpi_job_count = mpi_job_count + 1
                 mpi_runtime = mpi_runtime + runtime
                 number_of_nodes = math.ceil(job["tasks"]/job["taskspernode"])
+                if(number_of_nodes > 4920):
+                    print("High node count: ")
+                    print(number_of_nodes,job["tasks"],job["taskspernode"])
                 mpi_jobs.append([number_of_nodes,runtime])
             elif(job["mpi"] and job["openmp"]):
                 hybrid_job_count = hybrid_job_count + 1
