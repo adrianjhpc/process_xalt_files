@@ -8,6 +8,31 @@
 import json
 import os
 import math
+import numpy as np
+import matplotlib.pyplot as plt  
+
+def plot_bar_graph(data, filename, xlabel, ylabel):
+    data.sort()
+
+    labels, ys = zip(*data)
+    xs = np.arange(len(labels)) 
+    width = 1
+
+    fig = plt.figure()                                                               
+    ax = fig.gca()
+    ax.bar(xs, ys, width, align='center')
+    
+    #Remove the default x-axis tick numbers and  
+    #use tick numbers of your own choosing:
+    ax.set_xticks(xs)
+    #Replace the tick numbers with strings
+    ax.set_xticklabels(labels)
+
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    
+    plt.savefig(filename)
+
 
 #with open('xaltdata/adrianj/run.nid00002.2018_02_01_05_15_50.9a156b34-5e74-4b8f-b43f-022f74986290.json', 'r') as read_file:
 #    data = json.load(read_file)
@@ -206,8 +231,9 @@ hybrid_runtime = 0
 mpi_nodetime = 0
 openmp_nodetime = 0
 hybrid_nodetime = 0
-mpi_job_counts = []
-hybrid_job_counts = []
+mpi_jobs = []
+hybrid_jobs = []
+hybrid_thread_counts = []
 for job in jobs:
     total = total + 1
     runtime = job["runtime"]
@@ -222,13 +248,14 @@ for job in jobs:
             mpi_job_count = mpi_job_count + 1
             mpi_runtime = mpi_runtime + runtime
             number_of_nodes = math.ceil(job["tasks"]/job["taskspernode"])
-            mpi_job_counts.append([number_of_nodes,runtime])
+            mpi_jobs.append([number_of_nodes,runtime])
         elif(job["mpi"] and job["openmp"]):
             hybrid_job_count = hybrid_job_count + 1
             hybrid_runtime = hybrid_runtime + runtime
             number_of_nodes = math.ceil(job["tasks"]/job["taskspernode"])
-            hybrid_job_counts.append([number_of_nodes,runtime])
-                
+            threads = job["threads"]
+            hybrid_jobs.append([number_of_nodes,runtime])
+            hybrid_thread_counts.append([threads,runtime])
 print("Total run instances: " + str(total))
 print("Total runtime: " + str(total_runtime))
 print("Number of OpenMP jobs: " + str(openmp_job_count))
@@ -240,9 +267,82 @@ print("OpenMP runtime: " + str(openmp_runtime))
 print("Max tasks: " + str(max_tasks))
 print("Max threads: " + str(max_threads))
 
-plotable_mpi_job_counts = zip(mpi_job_counts)
-print(mpi_job_counts)
-print(plotable_mpi_job_counts)
+mpi_job_counts = []
+mpi_job_runtimes = []
 
-#for job in mpi_job_counts:
-#    print(job)
+for job in mpi_jobs:
+    number_of_nodes = job[0]
+    runtime = job[1]
+    found = False
+    # Here we are assuming mpi_job_counts and mpi_job_runtimes have the same structure, i.e. the same node count elements. This is true
+    # because the additions to the list (in the not found branch below) are done symmetrically.
+    for idx,item in enumerate(mpi_job_counts):
+        if(item[0] == number_of_nodes):
+            found = True
+            mpi_job_counts[idx][1] = mpi_job_counts[idx][1] + 1
+            mpi_job_runtimes[idx][1] = mpi_job_runtimes[idx][1] + runtime
+
+    # This maintains the coupling between the counts and runtimes lists to ensure the node orders are the same in both the lists.
+    if(not found):
+        mpi_job_counts.append([number_of_nodes,1])
+        mpi_job_runtimes.append([number_of_nodes,runtime])
+
+
+
+plot_bar_graph(mpi_job_counts, 'mpi_jobs_counts.png', 'number of nodes', 'number of jobs')
+plot_bar_graph(mpi_job_runtimes, 'mpi_jobs_runtimes.png', 'number of nodes', 'cumulative runtime (seconds)') 
+
+del mpi_jobs
+del mpi_job_counts
+del mpi_job_runtimes
+
+hybrid_job_counts = []
+hybrid_job_runtimes = []
+
+for job in hybrid_jobs:
+    number_of_nodes = job[0]
+    runtime = job[1]
+    found = False
+    # Here we are assuming hybrid_job_counts and hybrid_job_runtimes have the same structure, i.e. the same node count elements. This is true
+    # because the additions to the list (in the not found branch below) are done symmetrically.
+    for idx,item in enumerate(hybrid_job_counts):
+        if(item[0] == number_of_nodes):
+            found = True
+            hybrid_job_counts[idx][1] = hybrid_job_counts[idx][1] + 1
+            hybrid_job_runtimes[idx][1] = hybrid_job_runtimes[idx][1] + runtime
+            break
+        
+    # This maintains the coupling between the counts and runtimes lists to ensure the node orders are the same in both the lists.
+    if(not found):
+        hybrid_job_counts.append([number_of_nodes,1])
+        hybrid_job_runtimes.append([number_of_nodes,runtime])
+
+            
+plot_bar_graph(hybrid_job_counts, 'hybrid_jobs_counts.png', 'number of nodes', 'number of jobs')
+plot_bar_graph(hybrid_job_runtimes, 'hybrid_jobs_runtimes.png', 'number of nodes', 'cumulative runtime (seconds)')
+
+del hybrid_jobs
+del hybrid_job_counts
+del hybrid_job_runtimes
+
+hybrid_job_thread_counts = []
+hybrid_job_thread_runtimes = []
+        
+for job in hybrid_thread_counts:
+    number_of_threads = job[0]
+    runtime = job[1]
+    found = False
+    for idx,item in enumerate(hybrid_job_thread_counts):
+        if(item[0] == number_of_threads):
+            found = True
+            hybrid_job_thread_counts[idx][1] = hybrid_job_thread_counts[idx][1] + 1
+            hybrid_job_thread_runtimes[idx][1] = hybrid_job_thread_runtimes[idx][1] + 1
+            break
+        
+    if(not found):
+        hybrid_job_thread_counts.append([number_of_threads,1])
+        hybrid_job_thread_runtimes.append([number_of_threads,runtime])
+
+                        
+plot_bar_graph(hybrid_job_thread_counts, 'hybrid_jobs_thread_counts.png', 'number of threads used', 'number of jobs')
+plot_bar_graph(hybrid_job_thread_runtimes, 'hybrid_jobs_thread_runtimes.png', 'number of threads used', 'cumulative runtime (seconds)') 
