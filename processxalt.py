@@ -64,6 +64,7 @@ def process_files(file_path, defined_process_limit = -1):
     for dir in directories:
         if(process_limit != -1 and files_processed > process_limit): break
         files = os.listdir(root_path+"/"+dir)
+        local_executables = []
         for file in files:
             if 'link.' in file:            
                 files_processed = files_processed + 1
@@ -96,14 +97,10 @@ def process_files(file_path, defined_process_limit = -1):
                                     break
                             
                         executables.append(new_executable)
+                        local_executables.append(new_executable)
                     except:
                         print("Problem with " + root_path+"/"+dir+"/"+file)
 
-    files_processed = 0
-    
-    for dir in directories:
-        if(process_limit != -1 and files_processed > process_limit): break
-        files = os.listdir(root_path+"/"+dir)
         for file in files:
             if 'run.' in file:
                 files_processed = files_processed + 1
@@ -114,12 +111,14 @@ def process_files(file_path, defined_process_limit = -1):
                         new_job = {}
                         new_job["hash"] = data["hash_id"]
                         userT = data["userT"]
+                        valid_data = True
                         for user in userT:
                             if 'num_tasks' in user:
                                 new_job["tasks"]  = userT[user]
-                                if(userT[user]  > 100000):
-                                    print("High Tasks:")
-                                    print(data)
+                                # If the user has specified a stupid number of tasks to aprun then drop this record
+                                if(userT[user]  > 200000):
+                                    valid_data = False
+
                             elif 'num_threads' in user:
                                 new_job["threads"] = userT[user]
                             elif 'tasksnode' in user:
@@ -138,18 +137,33 @@ def process_files(file_path, defined_process_limit = -1):
                             else:
                                 new_job["taskspernode"] = node_tasks
 
-                        found = False
-                        for link in executables:
+                                
+                        new_job["found"] = False
+                        for link in local_executables:
                             if link["hash"] == new_job["hash"]:
                                 new_job["mpi"] = link["mpi"]
                                 new_job["openmp"] = link["openmp"]
                                 new_job["pthread"] = link["pthread"]
-                                found = True
+                                new_job["found"] = True
                                 break
-
-                        jobs.append(new_job)
+                            
+                        if(valid_data):
+                            jobs.append(new_job)
+                            
                     except:
                         print("Problem with " + root_path+"/"+dir+"/"+file)
+                                                
+    
+    for idx,job in enumerate(jobs):
+        if(not job["found"]):
+            for link in executables:
+                if link["hash"] == job["hash"]:
+                    jobs[idx]["mpi"] = link["mpi"]
+                    jobs[idx]["openmp"] = link["openmp"]
+                    jobs[idx]["pthread"] = link["pthread"]
+                    jobs[idx]["found"] = True
+                    break
+
 
     total = 0
     mpi = 0
@@ -259,6 +273,8 @@ def process_files(file_path, defined_process_limit = -1):
                 if(number_of_nodes > 4920):
                     print("High node count: ")
                     print(number_of_nodes,job["tasks"],job["taskspernode"])
+                    # Setting the maximum number of node on ARCHER
+                    number_of_nodes = 4920
                 mpi_jobs.append([number_of_nodes,runtime])
             elif(job["mpi"] and job["openmp"]):
                 hybrid_job_count = hybrid_job_count + 1
